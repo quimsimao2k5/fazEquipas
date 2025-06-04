@@ -10,6 +10,37 @@ from Equipa import Equipa
 from constraint import Problem
 from collections import defaultdict
 
+def criaOvDic(lista):
+    over = defaultdict(dict)
+    stats = [
+        ("Tec", "Amar"),
+        ("Tec", "Nos"),
+        ("Tec", "Frois"),
+        ("Tec", "Cart"),
+        ("Tec", "Cod"),
+        ("Tec", "Fogo"),
+        ("Tec", "Soc"),
+        ("Interp", "TrabEq"),
+        ("Interp", "GestConf"),
+        ("Interp", "Lider"),
+        ("Interp", "Anim"),
+        ("Fis", "DestFis"),
+        ("Fis", "DestMan"),
+        ("Atit", "Comp"),
+        ("Atit", "Mot"),
+        ("Atit", "Resil"),
+        ("Atit", "Criat"),
+        ("Ment", "Intel"),
+        ("Ment", "Mem"),
+        ("Ment", "Aten"),
+        ("VC", "Arrum"),
+        ("VC", "Mont"),
+        ("VC", "Coop")
+    ]
+    for (t, s), o in zip(stats, lista):
+        over[t][s] = o
+    return over
+
 def fazEquipas(elementos, n_equipas=3, max_solucoes=200000):
     problem = Problem()
     for i, el in enumerate(elementos):
