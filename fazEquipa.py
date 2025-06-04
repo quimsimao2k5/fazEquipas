@@ -7,142 +7,115 @@ Vários pares do tipo:
 '''
 from Elemento import Elemento
 from Equipa import Equipa
-import copy
-from constraint import Problem, AllDifferentConstraint
+from constraint import Problem
+from collections import defaultdict
 
-#CÁLCULO DE OVERALL
-# 1. Habilidades Técnicas(60%)
-#{Construções,Nós,Socorrismo,etc}
-# 2. Habilidades Interpessoais()
-# Trabalho em equipa (capacidade de colaborar, ouvir e ajudar colegas)
-# Comunicação (clareza ao explicar ideias, ouvir feedback)
-# Liderança (capacidade de organizar, motivar e tomar iniciativa)
-# Gestão de conflitos (saber lidar com opiniões diferentes)
-# 3. Atitude e Motivação
-# Compromisso (assiduidade, pontualidade, dedicação)
-# Motivação (vontade de participar e dar o melhor)
-# Resiliência (capacidade de lidar com pressão e falhas)
-# 4. Outros Aspetos
-# Criatividade (capacidade de propor soluções inovadoras)
-# Gestão de tempo (cumprir prazos, organizar tarefas)
-# Experiência em papéis diferentes (ex: já foi líder, já foi membro, já jogou em várias posições)
+def fazEquipas(elementos, n_equipas=3, max_solucoes=200000):
+    problem = Problem()
+    for i, el in enumerate(elementos):
+        problem.addVariable(i, range(n_equipas))
 
-
-elementos = [
-    Elemento('Marta','IV',4,97),
-    Elemento('Abelamio','IV',3,95),
-    Elemento('Simao','IV',1,92),
-    Elemento('Jessica','IV',1,85),
-    Elemento('Chico','III',4,92),
-    Elemento('Bea','III',4,85),
-    Elemento('Nuno','III',2,85),
-    Elemento('Subtil','III',2,72),
-    Elemento('Ivo','III',1,70),
-    Elemento('JP','II',4,72),
-    Elemento('Caetano','II',3,72),
-    Elemento('NunoJose','II',3,60),
-    Elemento('Miguel','II',2,55)
-]
-
-
-
-#PARTE COMBINATÓRIA
-n_equipas = 3
-problem = Problem()
-
-# Cada elemento é atribuído a uma equipa (0, 1 ou 2)
-for i, el in enumerate(elementos):
-    problem.addVariable(i, range(n_equipas))
-
-# Restrição: máximo 2 de cada secção por equipa
-def max_2_secao(*args):
-    for equipa in range(n_equipas):
-        sec_count = {"II":0, "III":0, "IV":0}
-        for idx, equipa_atr in enumerate(args):
-            if equipa_atr == equipa:
-                sec_count[elementos[idx].seccao] += 1
-        if any(v > 2 for v in sec_count.values()):
-            return False
-    return True
-
-problem.addConstraint(max_2_secao, tuple(range(len(elementos))))
-
-# Restrição: todos os membros de uma equipa têm de ser compatíveis
-def todos_compatíveis(*args):
-    for equipa in range(n_equipas):
-        membros = [elementos[idx] for idx, equipa_atr in enumerate(args) if equipa_atr == equipa]
-        for i in range(len(membros)):
-            for j in range(i+1, len(membros)):
-                if membros[j].seccao == membros[i].seccao and membros[j].ano == membros[i].ano:
-                    return False
-    return True
-
-problem.addConstraint(todos_compatíveis, tuple(range(len(elementos))))
-
-# Restrição: equipas com pelo menos 4 elementos
-def min_4(*args):
-    for equipa in range(n_equipas):
-        if sum(1 for e in args if e == equipa) < 4:
-            return False
-    return True
-
-problem.addConstraint(min_4, tuple(range(len(elementos))))
-
-# Restrição: cada equipa tem pelo menos um elemento de cada secção
-def pelo_menos_um_de_cada_secao(*args):
-    for equipa in range(n_equipas):
-        secoes_presentes = set()
-        for idx, equipa_atr in enumerate(args):
-            if equipa_atr == equipa:
-                secoes_presentes.add(elementos[idx].seccao)
-        if not all(sec in secoes_presentes for sec in ["II", "III", "IV"]):
-            return False
-    return True
-
-problem.addConstraint(pelo_menos_um_de_cada_secao, tuple(range(len(elementos))))
-
-# Procura soluções
-max_solucoes = 200000
-solucoes = []
-for sol in problem.getSolutionIter():
-    solucoes.append(sol)
-    if len(solucoes) >= max_solucoes:
-        break
-
-if solucoes:
-    print(f"Foram encontradas {len(solucoes)} soluções!\n")
-else:
-    print("Não foi encontrada solução.")
-
-# Calcula a diferença de médias para cada solução
-solucoes_com_dif = []
-for solucao in solucoes:
-    medias = []
-    for equipa in range(n_equipas):
-        membros = [elementos[idx] for idx, equipa_atr in enumerate(solucao.values()) if equipa_atr == equipa]
-        if membros:
-            media = sum(e.overall for e in membros) / len(membros)
-        else:
-            media = 0
-        medias.append(media)
-    diff = max(medias) - min(medias)
-    solucoes_com_dif.append((diff, solucao, medias))
-
-# Ordena as soluções pela diferença de médias (menor para maior)
-solucoes_com_dif.sort(key=lambda x: x[0])
-
-# Escreve para ficheiro as soluções ordenadas
-with open("solucoes_equipas_ordenadas.txt", "w", encoding="utf-8") as f:
-    for idx_sol, (diff, solucao, medias) in enumerate(solucoes_com_dif, 1):
-        f.write(f"Solução {idx_sol} (Diferença de médias: {diff:.2f}):\n")
+    def max_2_secao(*args):
         for equipa in range(n_equipas):
-            f.write(f"  Equipa {equipa+1} (Média: {medias[equipa]:.2f}):\n")
-            for idx, equipa_atr in enumerate(solucao.values()):
+            sec_count = {"II":0, "III":0, "IV":0}
+            for idx, equipa_atr in enumerate(args):
                 if equipa_atr == equipa:
-                    f.write(f"    {elementos[idx].toStringSimples()} (OVR: {elementos[idx].overall})\n")
-        f.write("\n")
-print("Soluções ordenadas escritas em 'solucoes_equipas_ordenadas.txt'.")
+                    sec_count[elementos[idx].seccao] += 1
+            if any(v > 2 for v in sec_count.values()):
+                return False
+        return True
 
+    def todos_compatíveis(*args):
+        for equipa in range(n_equipas):
+            membros = [elementos[idx] for idx, equipa_atr in enumerate(args) if equipa_atr == equipa]
+            for i in range(len(membros)):
+                for j in range(i+1, len(membros)):
+                    if membros[j].seccao == membros[i].seccao and membros[j].ano == membros[i].ano:
+                        return False
+        return True
+
+    def min_4(*args):
+        for equipa in range(n_equipas):
+            if sum(1 for e in args if e == equipa) < 4:
+                return False
+        return True
+
+    def pelo_menos_um_de_cada_secao(*args):
+        for equipa in range(n_equipas):
+            secoes_presentes = set()
+            for idx, equipa_atr in enumerate(args):
+                if equipa_atr == equipa:
+                    secoes_presentes.add(elementos[idx].seccao)
+            if not all(sec in secoes_presentes for sec in ["II", "III", "IV"]):
+                return False
+        return True
+
+    problem.addConstraint(max_2_secao, tuple(range(len(elementos))))
+    problem.addConstraint(todos_compatíveis, tuple(range(len(elementos))))
+    problem.addConstraint(min_4, tuple(range(len(elementos))))
+    problem.addConstraint(pelo_menos_um_de_cada_secao, tuple(range(len(elementos))))
+
+    solucoes = []
+    for sol in problem.getSolutionIter():
+        solucoes.append(sol)
+        if len(solucoes) >= max_solucoes:
+            break
+    return solucoes
+
+def escreveSolucoesOrdenadas(elementos, solucoes, n_equipas=3, filename="solucoes_equipas_ordenadas.txt"):
+    # Calcula a diferença de médias para cada solução
+    solucoes_com_dif = []
+    for solucao in solucoes:
+        medias = []
+        for equipa in range(n_equipas):
+            membros = [elementos[idx] for idx, equipa_atr in enumerate(solucao.values()) if equipa_atr == equipa]
+            if membros:
+                media = sum(e.overall for e in membros) / len(membros)
+            else:
+                media = 0
+            medias.append(media)
+        diff = max(medias) - min(medias)
+        solucoes_com_dif.append((diff, solucao, medias))
+
+    # Ordena as soluções pela diferença de médias (menor para maior)
+    solucoes_com_dif.sort(key=lambda x: x[0])
+
+    # Escreve para ficheiro as soluções ordenadas
+    with open(filename, "w", encoding="utf-8") as f:
+        for idx_sol, (diff, solucao, medias) in enumerate(solucoes_com_dif, 1):
+            f.write(f"Solução {idx_sol} (Diferença de médias: {diff:.8f}):\n")
+            for equipa in range(n_equipas):
+                f.write(f"  Equipa {equipa+1} (Média: {medias[equipa]:.8f}):\n")
+                for idx, equipa_atr in enumerate(solucao.values()):
+                    if equipa_atr == equipa:
+                        f.write(f"    {elementos[idx].toStringSimples()} (OVR: {elementos[idx].overall})\n")
+            f.write("\n")
+    print(f"Soluções ordenadas escritas em '{filename}'.")
+
+if __name__ == "__main__":
+    # Exemplo de uso
+    elementos = [
+        Elemento('Marta','IV',4,97),
+        Elemento('Abelamio','IV',3,95),
+        Elemento('Simao','IV',1,92),
+        Elemento('Jessica','IV',1,85),
+        Elemento('Chico','III',4,92),
+        Elemento('Bea','III',4,85),
+        Elemento('Nuno','III',2,85),
+        Elemento('Subtil','III',2,72),
+        Elemento('Ivo','III',1,70),
+        Elemento('JP','II',4,72),
+        Elemento('Caetano','II',3,72),
+        Elemento('NunoJose','II',3,60),
+        Elemento('Miguel','II',2,55)
+    ]
+    n_equipas = 3
+    solucoes = fazEquipas(elementos, n_equipas, max_solucoes=200000)
+    if solucoes:
+        print(f"Foram encontradas {len(solucoes)} soluções!\n")
+        escreveSolucoesOrdenadas(elementos, solucoes, n_equipas)
+    else:
+        print("Não foi encontrada solução.")
 # elementos=[
 #     Elemento('Marta','IV',4,97),
 #     Elemento('Abelamio','IV',3,95),
