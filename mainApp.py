@@ -3,6 +3,11 @@ from tkinter import ttk
 import uuid
 from Elemento import *
 from fazEquipa import criaOvDic, fazEquipas,escreveSolucoesOrdenadas
+from tkinter import messagebox
+from tkinter import simpledialog
+import threading
+import os
+import subprocess
 
 
 
@@ -61,32 +66,86 @@ style.configure(
 # ==========================
 # 4. BOTÃO GERAR
 # ==========================
+elementos: dict[str, Elemento] = {}
 
 supFrame.grid_rowconfigure(0, weight=1)
 supFrame.grid_rowconfigure(1, weight=1)
 supFrame.grid_columnconfigure(0, weight=1)
 
+def geraEquipas():
+    nEquipas = simpledialog.askinteger("Nº de Equipas", "Quantas equipas deseja fazer:")
+    if nEquipas is None:
+        messagebox.showerror('Inválido', 'men preenche lá isso')
+        return
+
+    # Cria uma janela de progresso
+    progress_win = tk.Toplevel(mainWindow)
+    progress_win.title("A gerar equipas...")
+    progress_win.geometry("300x80")
+    progress_win.resizable(False, False)
+    progress_win.grab_set()
+    tk.Label(progress_win, text="A gerar equipas, por favor aguarde...").pack(pady=5)
+    progress = ttk.Progressbar(progress_win, mode='indeterminate')
+    progress.pack(fill='x', padx=20, pady=10)
+    progress.start(10)
+
+    listElementos=list(elementos.values())
+    def worker():
+        try:
+            solucoes = fazEquipas(listElementos, nEquipas, 1000000 * nEquipas)
+        except Exception as e:
+            solucoes = None
+            error = str(e)
+        else:
+            error = None
+
+        def on_finish():
+            progress.stop()
+            progress_win.destroy()
+            if error:
+                messagebox.showerror('Erro', f'Ocorreu um erro: {error}')
+            elif not solucoes:
+                messagebox.showerror('Elementos Insuficientes', 'Elementos incompatíveis com o nº de equipas indicado!')
+            else:
+                messagebox.showinfo('Feito','Equipas feitas, serão colocadas em ficheiro!')
+                # abrir o ficheiro solucoes_equipas_ordenadas.txt
+                escreveSolucoesOrdenadas(listElementos,solucoes,nEquipas)
+                file_path = "solucoes_equipas_ordenadas.txt"
+                # Tenta abrir o ficheiro com o programa padrão do SO
+                try:
+                    if os.name == 'nt':  # Windows
+                        os.startfile(file_path)
+                    elif os.name == 'posix':
+                        subprocess.call(('xdg-open', file_path))
+                    else:
+                        messagebox.showinfo('Ficheiro criado', f'Ficheiro criado: {file_path}')
+                except Exception as e:
+                    messagebox.showinfo('Ficheiro criado', f'Ficheiro criado: {file_path}\nNão foi possível abrir automaticamente: {e}')
+
+        mainWindow.after(0, on_finish)
+
+    threading.Thread(target=worker, daemon=True).start()
+
 geraButton = ttk.Button(
     supFrame,
     text="✨ Gerar Equipas ✨",
     style="Embelezado.TButton",
-    cursor="hand1"
+    cursor="hand1",
+    command=geraEquipas
 )
 geraButton.grid(row=0, column=0, pady=(40,10), ipadx=10, ipady=6, sticky='n')
-
-
 
 
 # ==========================
 # 5. BOTÃO ADICIONAR
 # ==========================
 
-elementos: dict[str, Elemento] = {}
 
 def abrir_janela_adicionar():
     janela = tk.Toplevel(mainWindow)
     janela.title("Adicionar Elemento")
-    janela.geometry("900x750")
+    janela.geometry("500x700")
+    janela.configure(bg="#e8b687")
     janela.grab_set()  # Foca nesta janela até fechar
 
     # Labels e entradas para cada atributo
@@ -95,12 +154,14 @@ def abrir_janela_adicionar():
     nome_entry.pack()
 
     tk.Label(janela, text="Secção:").pack()
-    seccao_entry = tk.Entry(janela)
-    seccao_entry.pack()
+    seccao_entry = tk.StringVar(value='II')
+    comboSec= ttk.Combobox(janela,textvariable=seccao_entry)
+    comboSec['values']=('II','III','IV')
+    comboSec.pack()
 
     tk.Label(janela, text="Ano na Secção:").pack()
-    ano_entry = tk.Entry(janela)
-    ano_entry.pack()
+    spinAno= ttk.Spinbox(janela,from_=1, to=4)
+    spinAno.pack()
 
     # Entradas para cada atributo
     overall = []
@@ -122,49 +183,49 @@ def abrir_janela_adicionar():
     row = 0
 
     # Técnica 27,5%
-    tk.Label(overall_frame, text="Técnica 27,5%", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
+    tk.Label(overall_frame, text="Técnica", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
     row += 1
-    add_labeled_entry(overall_frame, "Amarrações 32,5%:", row, 0, overall)
-    add_labeled_entry(overall_frame, "Nós 15%:", row, 1, overall)
+    add_labeled_entry(overall_frame, "Amarrações:", row, 0, overall)
+    add_labeled_entry(overall_frame, "Nós:", row, 1, overall)
     row += 1
-    add_labeled_entry(overall_frame, "Froissartage 7,5%:", row, 0, overall)
-    add_labeled_entry(overall_frame, "Cartografia, Orientação 10%:", row, 1, overall)
+    add_labeled_entry(overall_frame, "Froissartage:", row, 0, overall)
+    add_labeled_entry(overall_frame, "Cartografia, Orientação:", row, 1, overall)
     row += 1
-    add_labeled_entry(overall_frame, "Códigos 20%:", row, 0, overall)
-    add_labeled_entry(overall_frame, "Fogo 7,5%:", row, 1, overall)
+    add_labeled_entry(overall_frame, "Códigos:", row, 0, overall)
+    add_labeled_entry(overall_frame, "Fogo:", row, 1, overall)
     row += 1
-    add_labeled_entry(overall_frame, "Socorrismo 7,5%:", row, 0, overall)
+    add_labeled_entry(overall_frame, "Socorrismo:", row, 0, overall)
     row += 1
 
     # Interpessoais 17,5%
-    tk.Label(overall_frame, text="Interpessoais 17,5%", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
+    tk.Label(overall_frame, text="Interpessoais", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
     row += 1
-    add_labeled_entry(overall_frame, "Trabalho em Equipa 55%:", row, 0, overall)
-    add_labeled_entry(overall_frame, "Gestão de Conflitos 15%:", row, 1, overall)
+    add_labeled_entry(overall_frame, "Trabalho em Equipa:", row, 0, overall)
+    add_labeled_entry(overall_frame, "Gestão de Conflitos:", row, 1, overall)
     row += 1
-    add_labeled_entry(overall_frame, "Liderança 10%:", row, 0, overall)
-    add_labeled_entry(overall_frame, "Animação 20%:", row, 1, overall)
+    add_labeled_entry(overall_frame, "Liderança:", row, 0, overall)
+    add_labeled_entry(overall_frame, "Animação:", row, 1, overall)
     row += 1
 
     # Físicas 12,5%
-    tk.Label(overall_frame, text="Físicas 12,5%", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
+    tk.Label(overall_frame, text="Físicas", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
     row += 1
-    add_labeled_entry(overall_frame, "Destreza Física 60%:", row, 0, overall)
-    add_labeled_entry(overall_frame, "Destreza Manual 40%:", row, 1, overall)
+    add_labeled_entry(overall_frame, "Destreza Física:", row, 0, overall)
+    add_labeled_entry(overall_frame, "Destreza Manual:", row, 1, overall)
     row += 1
 
     # Atitude 20%
-    tk.Label(overall_frame, text="Atitude 20%", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
+    tk.Label(overall_frame, text="Atitude", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
     row += 1
-    add_labeled_entry(overall_frame, "Compromisso 30%:", row, 0, overall)
-    add_labeled_entry(overall_frame, "Motivação 30%:", row, 1, overall)
+    add_labeled_entry(overall_frame, "Compromisso:", row, 0, overall)
+    add_labeled_entry(overall_frame, "Motivação:", row, 1, overall)
     row += 1
-    add_labeled_entry(overall_frame, "Resiliência 15%:", row, 0, overall)
-    add_labeled_entry(overall_frame, "Criatividade 15%:", row, 1, overall)
+    add_labeled_entry(overall_frame, "Resiliência:", row, 0, overall)
+    add_labeled_entry(overall_frame, "Criatividade:", row, 1, overall)
     row += 1
 
     # Mental 15%
-    tk.Label(overall_frame, text="Mental 15%", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
+    tk.Label(overall_frame, text="Mental", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
     row += 1
     add_labeled_entry(overall_frame, "Inteligência:", row, 0, overall)
     add_labeled_entry(overall_frame, "Memória:", row, 1, overall)
@@ -173,7 +234,7 @@ def abrir_janela_adicionar():
     row += 1
 
     # Vida em Campo 7,5%
-    tk.Label(overall_frame, text="Vida em Campo 7,5%", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
+    tk.Label(overall_frame, text="Vida em Campo", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
     row += 1
     add_labeled_entry(overall_frame, "Arrumação:", row, 0, overall)
     add_labeled_entry(overall_frame, "Montagens:", row, 1, overall)
@@ -182,8 +243,11 @@ def abrir_janela_adicionar():
 
     def confirmar():
         nome = nome_entry.get()
-        seccao = seccao_entry.get()
-        ano = ano_entry.get() or "0"
+        if not nome.strip():
+            messagebox.showerror("Erro", "Nome inválido. Por favor, insira um nome.")
+            return
+        seccao = comboSec.get()
+        ano = spinAno.get() or "1"
         # Extrai os valores das entrys do overall
         overall_values = [float(e.get() or 0) for e in overall]
         id_elem = str(uuid.uuid4())
@@ -254,10 +318,21 @@ def delete_elemento(_):
         if iid in elementos:
             del elementos[iid]
         infTab.delete(iid)
-    print(elementos)
+
+def printOverall(d):
+    # Gera uma string com cada chave e valor em linhas separadas
+    return "\n".join(f"{k}: {v}" for k, v in d.items())
+
+def show_elemento(_):
+    selecionado = infTab.selection()
+    if not selecionado:
+        return
+    elem = elementos[selecionado[0]]
+    msg = printOverall(elem.overDetalhado)
+    messagebox.showinfo(elem.nome, msg)
 
 #Comportamento
 infTab.bind('<Delete>', delete_elemento)
-
+infTab.bind('<<TreeviewSelect>>', show_elemento)
 #Run
 mainWindow.mainloop()

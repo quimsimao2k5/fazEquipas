@@ -121,32 +121,8 @@ def escreveSolucoesOrdenadas(elementos, solucoes, n_equipas=3, filename="solucoe
                     if equipa_atr == equipa:
                         f.write(f"    {elementos[idx].toStringSimples()} (OVR: {elementos[idx].overall})\n")
             f.write("\n")
-    print(f"Soluções ordenadas escritas em '{filename}'.")
+    return
 
-if __name__ == "__main__":
-    # Exemplo de uso
-    elementos = [
-        Elemento('Marta','IV',4,97),
-        Elemento('Abelamio','IV',3,95),
-        Elemento('Simao','IV',1,92),
-        Elemento('Jessica','IV',1,85),
-        Elemento('Chico','III',4,92),
-        Elemento('Bea','III',4,85),
-        Elemento('Nuno','III',2,85),
-        Elemento('Subtil','III',2,72),
-        Elemento('Ivo','III',1,70),
-        Elemento('JP','II',4,72),
-        Elemento('Caetano','II',3,72),
-        Elemento('NunoJose','II',3,60),
-        Elemento('Miguel','II',2,55)
-    ]
-    n_equipas = 3
-    solucoes = fazEquipas(elementos, n_equipas, max_solucoes=200000)
-    if solucoes:
-        print(f"Foram encontradas {len(solucoes)} soluções!\n")
-        escreveSolucoesOrdenadas(elementos, solucoes, n_equipas)
-    else:
-        print("Não foi encontrada solução.")
 # elementos=[
 #     Elemento('Marta','IV',4,97),
 #     Elemento('Abelamio','IV',3,95),

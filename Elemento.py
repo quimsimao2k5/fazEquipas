@@ -4,6 +4,7 @@ class Elemento:
         self.seccao=seccao
         self.ano=ano
         self.overall=self.calculaOverall(overall)
+        self.overDetalhado=overall
     
     # Overall={
 #     "Técnica 27,5%":{
@@ -111,7 +112,7 @@ class Elemento:
         atitude = (
             overall["Atit"]["Comp"] * 0.30 +
             overall["Atit"]["Mot"] * 0.30 +
-            overall["Atit"]["Resil"] * 0.15 +
+            overall["Atit"]["Resil"] * 0.25 +
             overall["Atit"]["Criat"] * 0.15
         )
         over[3] = atitude * 0.20
