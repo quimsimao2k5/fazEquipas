@@ -9,6 +9,7 @@ from Elemento import Elemento
 from Equipa import Equipa
 from constraint import Problem
 from collections import defaultdict
+from math import factorial
 
 def criaOvDic(lista):
     over = defaultdict(dict)
@@ -28,6 +29,7 @@ def criaOvDic(lista):
         ("Fis", "DestMan"),
         ("Atit", "Comp"),
         ("Atit", "Mot"),
+        ("Atit", "Compt"),
         ("Atit", "Resil"),
         ("Atit", "Criat"),
         ("Ment", "Intel"),
@@ -93,9 +95,9 @@ def fazEquipas(elementos, n_equipas=3, max_solucoes=200000):
             break
     return solucoes
 
-def escreveSolucoesOrdenadas(elementos, solucoes, n_equipas=3, filename="solucoes_equipas_ordenadas.txt"):
+def escreveSolucoesOrdenadas(elementos, solucoes, n_equipas, filename="solucoes_equipas_ordenadas.txt"):
     # Calcula a diferença de médias para cada solução
-    solucoes_com_dif = []
+    solucoes_com_difaux = []
     for solucao in solucoes:
         medias = []
         for equipa in range(n_equipas):
@@ -106,10 +108,18 @@ def escreveSolucoesOrdenadas(elementos, solucoes, n_equipas=3, filename="solucoe
                 media = 0
             medias.append(media)
         diff = max(medias) - min(medias)
-        solucoes_com_dif.append((diff, solucao, medias))
+        solucoes_com_difaux.append((diff, solucao, medias))
 
     # Ordena as soluções pela diferença de médias (menor para maior)
-    solucoes_com_dif.sort(key=lambda x: x[0])
+    solucoes_com_difaux.sort(key=lambda x: x[0])
+
+    facN=factorial(n_equipas)
+
+    solucoes_com_dif=[]
+
+    for i in range(0,len(solucoes_com_difaux),facN):
+        solucoes_com_dif.append(solucoes_com_difaux[i])
+
 
     # Escreve para ficheiro as soluções ordenadas
     with open(filename, "w", encoding="utf-8") as f:

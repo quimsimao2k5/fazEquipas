@@ -6,75 +6,7 @@ class Elemento:
         self.overall=self.calculaOverall(overall)
         self.overDetalhado=overall
     
-    # Overall={
-#     "Técnica 27,5%":{
-#         "Amarrações 32,5%": float,
-#         "Nós 15%": float,
-#         "Froissartage 7,5%":float,
-#         "Cartografia, Orientação 10%": float,
-#         "Códigos 20%": float,
-#         "Fogo 7,5%": float,
-#         "Socorrismo 7,5%": float
-#     }
-#     ,
-#     "Interpessoais 17,5%":{
-#         "Trabalho em Equipa 55%": float,
-#         "Gestão de Conflitos 15%": float,
-#         "Liderança 10%": float,
-#         "Animação 20%": float
-#     }
-#     ,
-#     "Físicas 12,5%":{
-#         "Destreza Física 60%": float,
-#         "Destreza Manual 40%": float
-#     }
-#     ,
-#     "Atitude 20%":{
-#         "Compromisso 30%": float,
-#         "Motivação 30%": float,
-#         "Resiliência 15%": float,
-#         "Criatividade 15%": float
-#     }
-#     ,
-#     "Mental 15%":{
-#         "Inteligência": float,
-#         "Memória": float,
-#         "Atenção": float
-#     }
-#     ,
-#     "Vida em Campo 7,5%":{
-#         "Arrumação": float,
-#         "Montagens": float,
-#         "Cooperação": float
-#     }
-# }
-
-    # stats = [
-    #     ("Tec", "Amar"),
-    #     ("Tec", "Nos"),
-    #     ("Tec", "Frois"),
-    #     ("Tec", "Cart"),
-    #     ("Tec", "Cod"),
-    #     ("Tec", "Fogo"),
-    #     ("Tec", "Soc"),
-    #     ("Interp", "TrabEq"),
-    #     ("Interp", "GestConf"),
-    #     ("Interp", "Lider"),
-    #     ("Interp", "Anim"),
-    #     ("Fis", "DestFis"),
-    #     ("Fis", "DestMan"),
-    #     ("Atit", "Comp"),
-    #     ("Atit", "Mot"),
-    #     ("Atit", "Resil"),
-    #     ("Atit", "Criat"),
-    #     ("Ment", "Intel"),
-    #     ("Ment", "Mem"),
-    #     ("Ment", "Aten"),
-    #     ("VC", "Arrum"),
-    #     ("VC", "Mont"),
-    #     ("VC", "Coop")
-    # ]
-
+    
     def calculaOverall(self, overall):
         # Calcula os valores ponderados para cada categoria principal
         # Ordem: Técnica, Interpessoais, Físicas, Atitude, Mental, Vida em Campo
@@ -110,9 +42,10 @@ class Elemento:
 
         # Atitude 20%
         atitude = (
-            overall["Atit"]["Comp"] * 0.30 +
-            overall["Atit"]["Mot"] * 0.30 +
-            overall["Atit"]["Resil"] * 0.25 +
+            overall["Atit"]["Comp"] * 0.25 +
+            overall["Atit"]["Mot"] * 0.25 +
+            overall["Atit"]["Compt"] * 0.20 +
+            overall["Atit"]["Resil"] * 0.15 +
             overall["Atit"]["Criat"] * 0.15
         )
         over[3] = atitude * 0.20

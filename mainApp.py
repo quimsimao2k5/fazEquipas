@@ -144,7 +144,7 @@ geraButton.grid(row=0, column=0, pady=(40,10), ipadx=10, ipady=6, sticky='n')
 def abrir_janela_adicionar():
     janela = tk.Toplevel(mainWindow)
     janela.title("Adicionar Elemento")
-    janela.geometry("500x700")
+    janela.geometry("500x750")
     janela.configure(bg="#e8b687")
     janela.grab_set()  # Foca nesta janela até fechar
 
@@ -166,11 +166,47 @@ def abrir_janela_adicionar():
     # Entradas para cada atributo
     overall = []
 
-    # Função auxiliar para criar um campo com label e entry lado a lado
+    explicacoes = {
+        "Amarrações": "Avalia-se a quantidade/qualidade/velocidade que o elemento demora a fazer as amarrações."
+        ,"Nós":"Avalia-se a quantidade/qualidade/velocidade que o elemento demora a fazer os nós."
+        ,"Froissartage": "Avalia-se a qualidade e manuseamento com ferramentas usadas no froissartage."
+        ,"Cartografia, Orientação": "Avalia-se o conhecimento de cartografia e orientação, e também pela experiência neste tema."
+        ,"Códigos":"Avalia-se a qualidade do elemento em transmitir mensagens em morse e homógrafo, e também o conhecimento pelas cifras."
+        ,"Fogo": "Avalia-se a qualidade do elemento nas várias técnicas de acender uma fogueira sem fósforos."
+        ,"Socorrismo": "Avalia-se o conhecimento e aplicação das técnicas de Socorrismo."
+        ,"Trabalho em Equipa": "Avalia-se a capacidade de colaborar, ouvir e ajudar elementos da sua equipa."
+        ,"Gestão de Conflitos": "Avalia-se a capacidade de saber lidar com opiniões diferentes, e de manter a calma quando coisas não correm bem."
+        ,"Liderança": "Avalia-se a capacidade de influênciar e orientar os elementos da equipa em rumo de objetivos comuns.\nUm líder saber tomar decisões acertivas em prol das situações que atravessa."
+        ,"Animação": "Avalia-se a capacidade de animar os que o rodeam e a capacidade de organizar momentos de animação."
+        ,"Destreza Física": "Avalia-se capacidades básicas do movimento corporal tal como:\n•Corrida\n•Salto\n•Força\n•Agilidade\n•Controlo Corporal"
+        ,"Destreza Manual": "Avalia-se a destreza que o elemento tem nas mãos isto é a capacidade de fazer trabalhos manuais tais como pintar, cozer, habilidade com corda, mexer em coisas pequenas,etc."
+        ,"Compromisso": "Avalia-se o compromisso que o elemento têm perante as coisas que tem pela frente. Ou seja assiduidade e credibilidade da sua palavra."
+        ,"Motivação": "Avalia-se a vontade do elemento em frente a desafios diversos."
+        ,"Resiliência": "Avalia-se a capacidade do elemento se adaptar, superar e recuperar de situações adversas."
+        ,"Competitividade": "Avalia-se a vontade e desejo por querer fazer sempre melhor."
+        ,"Criatividade": "Avalia-se a habilidade de criar, inventar, inovar e fazer coisas novas e originais."
+        ,"Inteligência": "Avalia-se a capacidade do elemento raciocinar, compreender e mais específicamente a habilidade de perceber o que lhe é pedido."    
+        ,"Memória": "Avalia-se a capacidade do elemento de conseguir decorar muitas coisas."
+        ,"Atenção": "Avalia-se a capacidade de estar atento e a capacidade de se concentrar."
+        ,"Arrumação": "Avalia-se a arrumação do elemento na sua vida em campo, ou seja, se é limpo e se mantém as suas coisas organizadas."
+        ,"Montagens": "Avalia-se a ajuda que o elemento dá no momento da montagem de campo"
+        ,"Cooperação": "Avalia-se a vontade de ajudar em tarefas para fazer em campo, isto é, se quando é pedido ou não, o elemento se mostra prestável para a realização destas."    
+    }
+    
+    def mostrar_explicacao(titulo,texto):
+        messagebox.showinfo(titulo,texto)
+
+
     def add_labeled_entry(parent, label_text, row, col, entry_list, label_width=25, entry_width=5):
         label = tk.Label(parent, text=label_text, anchor='w', width=label_width)
         label.grid(row=row, column=col*2, sticky='w', padx=(5,2), pady=2)
+        if label_text.strip(":") in explicacoes:
+            label.bind(
+                "<Button-1>",
+                lambda e, t=label_text.strip(":"), txt=explicacoes[label_text.strip(":")]: mostrar_explicacao(t, txt)
+            )
         entry = tk.Entry(parent, width=entry_width)
+        entry.insert(0,'0')
         entry.grid(row=row, column=col*2+1, sticky='w', padx=(0,10), pady=2)
         entry_list.append(entry)
         return entry
@@ -220,10 +256,11 @@ def abrir_janela_adicionar():
     add_labeled_entry(overall_frame, "Compromisso:", row, 0, overall)
     add_labeled_entry(overall_frame, "Motivação:", row, 1, overall)
     row += 1
-    add_labeled_entry(overall_frame, "Resiliência:", row, 0, overall)
-    add_labeled_entry(overall_frame, "Criatividade:", row, 1, overall)
+    add_labeled_entry(overall_frame, "Competitividade:", row, 0, overall)
+    add_labeled_entry(overall_frame, "Resiliência:", row, 1, overall)
     row += 1
-
+    add_labeled_entry(overall_frame, "Criatividade:", row, 0, overall)
+    row += 1
     # Mental 15%
     tk.Label(overall_frame, text="Mental", font=('Verdana', 10, 'bold')).grid(row=row, column=0, sticky='w', pady=(8,2), columnspan=4)
     row += 1
